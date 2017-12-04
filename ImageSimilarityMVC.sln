@@ -1,0 +1,28 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 14
+VisualStudioVersion = 14.0.25420.1
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ImageSimilarityMVC", "ImageSimilarityMVC\ImageSimilarityMVC.csproj", "{BD790CAE-90B5-49F8-8B5F-0BBABBBF9525}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ImageSimilarityMVC.Tests", "ImageSimilarityMVC.Tests\ImageSimilarityMVC.Tests.csproj", "{FED15987-AFA7-4F1F-8ED3-2E774576802B}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{BD790CAE-90B5-49F8-8B5F-0BBABBBF9525}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BD790CAE-90B5-49F8-8B5F-0BBABBBF9525}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BD790CAE-90B5-49F8-8B5F-0BBABBBF9525}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BD790CAE-90B5-49F8-8B5F-0BBABBBF9525}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FED15987-AFA7-4F1F-8ED3-2E774576802B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FED15987-AFA7-4F1F-8ED3-2E774576802B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FED15987-AFA7-4F1F-8ED3-2E774576802B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FED15987-AFA7-4F1F-8ED3-2E774576802B}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

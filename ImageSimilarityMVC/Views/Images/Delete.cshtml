@@ -8,79 +8,32 @@
 <p>Are you sure you want to delete this image?</p>
 <div>
     <hr />
-    <dl class="dl-horizontal">
-        <dt>
-            @Html.DisplayNameFor(model => model.TimeStamp)
-        </dt>
+    <div class="row">
+        <div class="col-md-6">
+            <img src="data:image;base64,@System.Convert.ToBase64String(Model.Image)" alt="Image" height="300" />
+        </div>
+        <div class="col-md-6">
+            <dl class="dl-horizontal">
+                <dt>@Html.DisplayNameFor(model => model.TimeStamp)</dt>
+                <dd>@Html.DisplayFor(model => model.TimeStamp)</dd>
+                <dt>@Html.DisplayNameFor(model => model.Name)</dt>
+                <dd>@Html.DisplayFor(model => model.Name)</dd>
+                <dt>@Html.DisplayNameFor(model => model.Type)</dt>
+                <dd>@Html.DisplayFor(model => model.Type)</dd>
+                <dt>@Html.DisplayNameFor(model => model.Size)</dt>
+                <dd>@Html.DisplayFor(model => model.Size)</dd>
+            </dl>
+        </div>
+    </div>
+    <br />
 
-        <dd>
-            @Html.DisplayFor(model => model.TimeStamp)
-        </dd>
-
-        <dt>
-            @Html.DisplayNameFor(model => model.Name)
-        </dt>
-
-        <dd>
-            @Html.DisplayFor(model => model.Name)
-        </dd>
-
-        <dt>
-            @Html.DisplayNameFor(model => model.Type)
-        </dt>
-
-        <dd>
-            @Html.DisplayFor(model => model.Type)
-        </dd>
-
-        <dt>
-            @Html.DisplayNameFor(model => model.Size)
-        </dt>
-
-        <dd>
-            @Html.DisplayFor(model => model.Size)
-        </dd>
-
-        <dt>
-            @Html.DisplayNameFor(model => model.Image)
-        </dt>
-
-        <dd>
-            <img src="data:image;base64,@System.Convert.ToBase64String(Model.Image)" alt="Image" height="200" />
-        </dd>
-
-        <dt>
-            @Html.DisplayNameFor(model => model.HistogramR)
-        </dt>
-
-        <dd>
-            <img src="data:image;base64,@System.Convert.ToBase64String(Model.HistogramR)" alt="HistogramR" />
-        </dd>
-
-        <dt>
-            @Html.DisplayNameFor(model => model.HistogramG)
-        </dt>
-
-        <dd>
-            <img src="data:image;base64,@System.Convert.ToBase64String(Model.HistogramG)" alt="HistogramG" />
-        </dd>
-
-        <dt>
-            @Html.DisplayNameFor(model => model.HistogramB)
-        </dt>
-
-        <dd>
-            <img src="data:image;base64,@System.Convert.ToBase64String(Model.HistogramB)" alt="HistogramB" />
-        </dd>
-
-    </dl>
-
-    @using (Html.BeginForm()) {
+    @using (Html.BeginForm())
+    {
         @Html.AntiForgeryToken()
 
         <div class="form-actions no-color">
-            <input type="submit" value="Delete" class="btn btn-default" /> 
             @Html.ActionLink("Back to List", "Index", null, new { @class = "btn btn-default" })
+            <input type="submit" value="Delete" class="btn btn-default" />
         </div>
     }
 </div>

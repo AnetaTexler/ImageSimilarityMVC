@@ -5,84 +5,35 @@
 }
 
 <h2>Image details</h2>
-<br />
+<p>Click on "Show similar images" button to display similar images.</p>
 
 <div>
     <hr />
-    <dl class="dl-horizontal">
-        <dt>
-            @Html.DisplayNameFor(model => model.TimeStamp)
-        </dt>
-
-        <dd>
-            @Html.DisplayFor(model => model.TimeStamp)
-        </dd>
-
-        <dt>
-            @Html.DisplayNameFor(model => model.Name)
-        </dt>
-
-        <dd>
-            @Html.DisplayFor(model => model.Name)
-        </dd>
-
-        <dt>
-            @Html.DisplayNameFor(model => model.Type)
-        </dt>
-
-        <dd>
-            @Html.DisplayFor(model => model.Type)
-        </dd>
-
-        <dt>
-            @Html.DisplayNameFor(model => model.Size)
-        </dt>
-
-        <dd>
-            @Html.DisplayFor(model => model.Size)
-        </dd>
-
-        <dt>
-            @Html.DisplayNameFor(model => model.Image)
-        </dt>
-
-        <dd>
-            <img src="data:image;base64,@System.Convert.ToBase64String(Model.Image)" alt="Image" height="200" />
-        </dd>
-
-        <dt>
-            @Html.DisplayNameFor(model => model.HistogramR)
-        </dt>
-
-        <dd>
-            <img src="data:image;base64,@System.Convert.ToBase64String(Model.HistogramR)" alt="HistogramR" />
-        </dd>
-
-        <dt>
-            @Html.DisplayNameFor(model => model.HistogramG)
-        </dt>
-
-        <dd>
-            <img src="data:image;base64,@System.Convert.ToBase64String(Model.HistogramG)" alt="HistoramG" />
-        </dd>
-
-        <dt>
-            @Html.DisplayNameFor(model => model.HistogramB)
-        </dt>
-
-        <dd>
-            <img src="data:image;base64,@System.Convert.ToBase64String(Model.HistogramB)" alt="HistogramB" />
-        </dd>
-
-    </dl>
-</div>
-<div class="row">
-    <div class="col-md-9">
-        @Html.ActionLink("Back to List", "Index", null, new { @class = "btn btn-default" })
+    <div class="row">
+        <div class="col-md-8">
+            <h4>Original image:</h4>
+            <img src="data:image;base64,@System.Convert.ToBase64String(Model.Image)" alt="Image" height="430" />
+            <dl class="dl-horizontal"><br />
+                <dt>@Html.DisplayNameFor(model => model.TimeStamp)</dt>
+                <dd>@Html.DisplayFor(model => model.TimeStamp)</dd>
+                <dt>@Html.DisplayNameFor(model => model.Name)</dt>
+                <dd>@Html.DisplayFor(model => model.Name)</dd>
+                <dt>@Html.DisplayNameFor(model => model.Type)</dt>
+                <dd>@Html.DisplayFor(model => model.Type)</dd>
+                <dt>@Html.DisplayNameFor(model => model.Size)</dt>
+                <dd>@Html.DisplayFor(model => model.Size)</dd>
+            </dl><br />
+            @Html.ActionLink("Back to List", "Index", null, new { @class = "btn btn-default" })
+            @Html.ActionLink("Show similar images", "Index", new { id = Model.ID }, new { @class = "btn btn-primary" })
+        </div>
+        <div class="col-md-offset-9">
+            <h4>Image RGB histograms:</h4>
+            <p><img src="data:image;base64,@System.Convert.ToBase64String(Model.HistogramR)" alt="HistogramR" /></p>
+            <p><img src="data:image;base64,@System.Convert.ToBase64String(Model.HistogramG)" alt="HistoramG" /></p>
+            <p><img src="data:image;base64,@System.Convert.ToBase64String(Model.HistogramB)" alt="HistogramB" /></p>
+        </div>
     </div>
-    <div class="col-md-3">
-        @Html.ActionLink("Edit", "Edit", new { id = Model.ID }, new { @class = "btn btn-default" })
-        @Html.ActionLink("Show similar images", "Index", new { id = Model.ID }, new { @class = "btn btn-default" })
-    </div>
+    
 </div>
+
 

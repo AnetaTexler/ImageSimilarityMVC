@@ -5,7 +5,7 @@
 }
 
 <h2>Create new image</h2>
-<p>Enter a name of image and upload some from your local storage.</p>
+<p>Enter a name of image and upload some image from your local storage.</p>
 
 @using (Html.BeginForm("Create", "Images", FormMethod.Post, new { enctype = "multipart/form-data" })) 
 {
@@ -26,7 +26,7 @@
         <div class="form-group">
             @Html.LabelFor(model => model.Image, htmlAttributes: new { @class = "control-label col-md-2" })
             <div class="col-md-10">
-                @Html.TextBox("file", "", new { type = "file", label = "Choose file" })
+                @Html.TextBox("file", "", new { @class = "form-control-file", type = "file", label = "Choose file" })
                 @ViewBag.Message
                 @Html.ValidationMessageFor(model => model.Image, "", new { @class = "text-danger" })
             </div>

@@ -15,7 +15,7 @@ namespace ImageSimilarityMVC.Controllers
 
         public ActionResult About()
         {
-            ViewBag.Message = "Web application for searching similar images based on their histograms.";
+            ViewBag.Message = "ASP.NET MVC Web application for searching similar images based on their histograms.";
 
             return View();
         }

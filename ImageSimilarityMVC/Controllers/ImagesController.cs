@@ -70,16 +70,19 @@ namespace ImageSimilarityMVC.Controllers
                     catch (Exception ex)
                     {
                         ViewBag.Message = "ERROR:" + ex.Message.ToString();
-                        return RedirectToAction("Create");
+                        return View(imageModel);
+                        //return RedirectToAction("Create");
                     }
                 }
-                else if (!file.ContentType.Contains("image"))
+                else if (file != null && file.ContentLength > 0 && !file.ContentType.Contains("image"))
                 {
                     ViewBag.Message = "Not a valid image.";
+                    return View(imageModel);
                 }
                 else
                 {
                     ViewBag.Message = "You have not specified a file.";
+                    return View(imageModel);
                 }
 
                 db.Images.Add(imageModel);
@@ -131,11 +134,14 @@ namespace ImageSimilarityMVC.Controllers
             {
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
             }
+
             ImageModel imageModel = db.Images.Find(id);
+
             if (imageModel == null)
             {
                 return HttpNotFound();
             }
+
             return View(imageModel);
         }
 
@@ -215,9 +221,9 @@ namespace ImageSimilarityMVC.Controllers
                 for (int col = 0; col < histogramImage.Width; col++)
                 {
                     if (row + 1 <= frequencyArr[col])
-                        histogramImage.SetPixel(col, row, color);
+                        histogramImage.SetPixel(col, histogramImage.Height - 1 - row, color);
                     else
-                        histogramImage.SetPixel(col, row, Color.Black);
+                        histogramImage.SetPixel(col, histogramImage.Height - 1 - row, Color.Black);
                 }
             }
         }

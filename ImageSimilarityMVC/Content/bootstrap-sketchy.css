@@ -180,6 +180,29 @@ dl {
   margin-bottom: 1rem;
 }
 
+@media (min-width: 768px) {
+  .dl-horizontal dt {
+    float: left;
+    width: 160px;
+    overflow: hidden;
+    clear: left;
+    text-align: right;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .dl-horizontal dd {
+    margin-left: 180px;
+  }
+  .dl-horizontal dd:before,
+  .dl-horizontal dd:after {
+    display: table;
+    content: " ";
+  }
+  .dl-horizontal dd:after {
+    clear: both;
+  }
+}
+
 ol ol,
 ul ul,
 ol ul,
@@ -376,6 +399,10 @@ input[type="month"] {
   -webkit-appearance: listbox;
 }
 
+input[type="file"]{
+    display: inline-block;
+}
+
 textarea {
   overflow: auto;
   resize: vertical;
@@ -474,7 +501,7 @@ h6, .h6 {
 }
 
 .lead {
-  font-size: 1.25rem;
+  font-size: 1.1rem;
   font-weight: 300;
 }
 
@@ -1716,12 +1743,12 @@ pre code {
 .table th,
 .table td {
   padding: 0.75rem;
-  vertical-align: top;
+  vertical-align: middle;
   border-top: 1px solid #333;
 }
 
 .table thead th {
-  vertical-align: bottom;
+  vertical-align: middle;
   border-bottom: 2px solid #333;
 }
 
@@ -1897,7 +1924,7 @@ pre code {
 
 .table .thead-dark th {
   color: #fff;
-  background-color: #212529;
+  background-color: #555;
   border-color: #32383e;
 }
 
@@ -4270,7 +4297,7 @@ tbody.collapse.show {
 }
 
 .navbar-dark .navbar-brand {
-  color: #fff;
+  color: #28a745;
 }
 
 .navbar-dark .navbar-brand:focus, .navbar-dark .navbar-brand:hover {
@@ -4282,7 +4309,7 @@ tbody.collapse.show {
 }
 
 .navbar-dark .navbar-nav .nav-link:focus, .navbar-dark .navbar-nav .nav-link:hover {
-  color: #fff;
+  color: #28a745;
 }
 
 .navbar-dark .navbar-nav .nav-link.disabled {
@@ -4688,8 +4715,8 @@ tbody.collapse.show {
 .badge {
   display: inline-block;
   padding: 0.5em 1.2em;
-  font-size: 75%;
-  font-weight: 700;
+  font-size: 85%;
+  font-weight: 500;
   line-height: 1;
   text-align: center;
   white-space: nowrap;
@@ -4804,6 +4831,9 @@ tbody.collapse.show {
   padding: 2rem 1rem;
   margin-bottom: 2rem;
   background-color: transparent;
+  background-image: url("hist.png");
+  background-position: right;
+  background-repeat: no-repeat;
   border-radius: 555px 25px 15px 25px/25px 5px 35px 555px;
 }
 
@@ -8819,6 +8849,7 @@ a.text-dark:focus, a.text-dark:hover {
 .navbar-brand {
   font-family: "Cabin Sketch", cursive;
   font-weight: normal;
+  font-size: xx-large;
   text-decoration: none;
 }
 

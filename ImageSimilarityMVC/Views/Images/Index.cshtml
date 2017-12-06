@@ -3,14 +3,28 @@
 @{
     ViewBag.Title = "List";
 }
-<br />
+<br /><br />
 <h2>List of images</h2>
 <br />
 
-<p>
-    @Html.ActionLink("Create New", "Create", "", new { @class = "btn btn-success btn-lg" })
-</p>
-<table class="table table-striped table-hover">
+<div class="row">
+    <div class="col-md-6 float-left">
+        <p>
+            @Html.ActionLink("Create New", "Create", "", new { @class = "btn btn-success btn-lg" })
+        </p>
+    </div>
+    <div class="col-md-6 text-right">
+        @using (Html.BeginForm())
+        {
+            <p>
+                Find by name: @Html.TextBox("SearchString")
+                <input type="submit" value="Search" class="btn btn-outline-secondary" />
+            </p>
+        }
+    </div>
+</div>
+
+<table class="table table-striped table-hover lead">
     <thead class="thead-dark">
         <tr>
             <th>@Html.DisplayNameFor(model => model.TimeStamp)</th>
@@ -38,5 +52,8 @@
         </td>
     </tr>
 }
-
 </table>
+<div class="pagination">
+    <ul></ul>
+
+</div>

@@ -1,0 +1,72 @@
+﻿@model ImageSimilarityMVC.Models.ImageModel
+
+@{
+    ViewBag.Title = "Similar";
+}
+<br /><br />
+<h2>Similar images</h2>
+<p class="lead">Set of similar images sorted by best match.</p>
+
+<div>
+    <hr />
+    <h3>Input image:</h3>
+    <div class="row">
+        <div class="col-md-3">
+            <p>
+                <img src="data:image;base64,@System.Convert.ToBase64String(Model.Image)" alt="Image" height="200" />
+            </p>
+        </div>
+        <div class="col-md-9 text-right">
+            <p>
+                <img src="data:image;base64,@System.Convert.ToBase64String(Model.HistogramR)" alt="HistogramR" />
+                <img src="data:image;base64,@System.Convert.ToBase64String(Model.HistogramG)" alt="HistoramG" />
+                <img src="data:image;base64,@System.Convert.ToBase64String(Model.HistogramB)" alt="HistogramB" />
+            </p>
+        </div>
+    </div>
+    <div>
+        @Html.ActionLink("Back to List", "Index", null, new { @class = "btn btn-secondary" })
+        @Html.ActionLink("Back to Details", "Details", new { id = Model.ID }, new { @class = "btn btn-secondary" })
+    </div>
+</div>
+
+<div>
+    <hr />
+    <h3>Similar images:</h3>
+    @foreach (var item in ViewBag.SimilarImages)
+    {
+        <p>
+            <span class="badge badge-pill badge-dark">R</span>
+            <span class="badge badge-pill badge-light">@item.Item1</span>
+        </p>
+        <div class="row">
+            @*<p>
+                    <span class="badge badge-pill badge-dark">@Html.DisplayNameFor(model => model.TimeStamp)</span>
+                    <span class="badge badge-pill badge-light">@Html.DisplayFor(model => model.TimeStamp)</span>
+                    <span class="badge badge-pill badge-dark">@Html.DisplayNameFor(model => model.Name)</span>
+                    <span class="badge badge-pill badge-light">@Html.DisplayFor(model => model.Name)</span>
+                    <span class="badge badge-pill badge-dark">@Html.DisplayNameFor(model => model.Type)</span>
+                    <span class="badge badge-pill badge-light">@Html.DisplayFor(model => model.Type)</span>
+                    <span class="badge badge-pill badge-dark">@Html.DisplayNameFor(model => model.Size)</span>
+                    <span class="badge badge-pill badge-light">@Html.DisplayFor(model => model.Size)</span>
+                </p>*@
+            <div class="col-md-3">
+                <p>
+                    <img src="data:image;base64,@System.Convert.ToBase64String(item.Item2.Image)" alt="Image" height="200" />
+                </p>
+            </div>
+            <div class="col-md-9 text-right">
+                <p>
+                    <img src="data:image;base64,@System.Convert.ToBase64String(item.Item2.HistogramR)" alt="HistogramR" />
+                    <img src="data:image;base64,@System.Convert.ToBase64String(item.Item2.HistogramG)" alt="HistoramG" />
+                    <img src="data:image;base64,@System.Convert.ToBase64String(item.Item2.HistogramB)" alt="HistogramB" />
+                </p>
+            </div>
+        </div>
+    }
+
+    <div>
+        @Html.ActionLink("Back to List", "Index", null, new { @class = "btn btn-secondary" })
+        @Html.ActionLink("Back to Details", "Details", new { id = Model.ID }, new { @class = "btn btn-secondary" })
+    </div>
+</div>

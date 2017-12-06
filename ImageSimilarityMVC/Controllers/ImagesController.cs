@@ -18,9 +18,18 @@ namespace ImageSimilarityMVC.Controllers
         private ImageModelDBContext db = new ImageModelDBContext();
 
         // GET: Images
-        public ActionResult Index()
+        public ActionResult Index(string searchString)
         {
-            return View(db.Images.ToList());
+            var images = from i in db.Images select i;
+
+            if (!String.IsNullOrEmpty(searchString))
+            {
+                images = images.Where(i => i.Name.Contains(searchString));
+            }
+
+            images = images.OrderByDescending(i => i.TimeStamp);
+
+            return View(images.ToList());
         }
 
         // GET: Images/Details/5
@@ -52,8 +61,7 @@ namespace ImageSimilarityMVC.Controllers
         // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Create([Bind(Include = "ID,TimeStamp,Name,Type,Size,Image,HistogramR,HistogramG,HistogramB")] ImageModel imageModel,
-            HttpPostedFileBase file)
+        public ActionResult Create([Bind(Include = "Name,Image")] ImageModel imageModel, HttpPostedFileBase file)
         {
             if (ModelState.IsValid)
             {
@@ -165,6 +173,44 @@ namespace ImageSimilarityMVC.Controllers
             base.Dispose(disposing);
         }
 
+        // GET: Images/ShowSimilar/5
+        public ActionResult ShowSimilar(int? id)
+        {
+            if (id == null)
+            {
+                return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
+            }
+
+            ImageModel inputImageModel = db.Images.Find(id);
+
+            if (inputImageModel == null)
+            {
+                return HttpNotFound();
+            }
+
+            List<ImageModel> allImageModels = db.Images.ToList();
+            allImageModels.RemoveAt(allImageModels.IndexOf(inputImageModel)); // list of pontencial similar images except from the input image
+
+            List<Tuple<double, ImageModel>> bhattacharyyaCoeffImagePairList = new List<Tuple<double, ImageModel>>();
+
+            foreach (ImageModel model in allImageModels)
+            {
+                Tuple<double, ImageModel> bhattacharyyaCoeffImagePair = CompareAndGetRateOfSimilarity(inputImageModel, model);
+                bhattacharyyaCoeffImagePairList.Add(bhattacharyyaCoeffImagePair);
+            }
+
+            // descending sort (bhattacharyya coefficient from higher to lowest)
+            bhattacharyyaCoeffImagePairList.Sort((x, y) => y.Item1.CompareTo(x.Item1));
+
+            // get first x similar images
+            int similarImagesToDisplay = 5;
+            ViewBag.SimilarImages = bhattacharyyaCoeffImagePairList.Take(similarImagesToDisplay).ToList();
+
+            allImageModels.Clear();
+            bhattacharyyaCoeffImagePairList.Clear();
+
+            return View(inputImageModel);
+        }
 
 
         #region Private methods
@@ -176,9 +222,9 @@ namespace ImageSimilarityMVC.Controllers
             int[] frequencyArr_channelG = Enumerable.Repeat(0, 256).ToArray(); // green
             int[] frequencyArr_channelB = Enumerable.Repeat(0, 256).ToArray(); // blue
 
-            for (int row = 0; row < imageBitmap.Height; row++)
+            for (int col = 0; col < imageBitmap.Width; col++)
             {
-                for (int col = 0; col < imageBitmap.Width; col++)
+                for (int row = imageBitmap.Height - 1; row >= 0; row--)
                 {
                     Color color = imageBitmap.GetPixel(col, row);
                     frequencyArr_channelR[color.R]++;
@@ -216,14 +262,14 @@ namespace ImageSimilarityMVC.Controllers
 
         private void CreateImage(int[] frequencyArr, Color color, ref Bitmap histogramImage)
         {
-            for (int row = 0; row < histogramImage.Height; row++)
+            for (int col = 0; col < histogramImage.Width; col++)
             {
-                for (int col = 0; col < histogramImage.Width; col++)
+                for (int row = histogramImage.Height - 1; row >= 0; row--)
                 {
-                    if (row + 1 <= frequencyArr[col])
-                        histogramImage.SetPixel(col, histogramImage.Height - 1 - row, color);
+                    if (histogramImage.Height - row <= frequencyArr[col])
+                        histogramImage.SetPixel(col, row, color);
                     else
-                        histogramImage.SetPixel(col, histogramImage.Height - 1 - row, Color.Black);
+                        histogramImage.SetPixel(col, row, Color.Black);
                 }
             }
         }
@@ -249,6 +295,43 @@ namespace ImageSimilarityMVC.Controllers
                 }
                 return ms.ToArray();
             }
+        }
+
+        private Tuple<double, ImageModel> CompareAndGetRateOfSimilarity(ImageModel inputModel, ImageModel candidateModel)
+        {
+            double bhattacharyyaCoeff = 0.0;
+            int[] frequencyArr_input = GetFrequency(inputModel.HistogramR);
+            int[] frequencyArr_candidate = GetFrequency(candidateModel.HistogramR);
+
+            for (int i = 0; i < 256; i++)
+            {
+                bhattacharyyaCoeff += Math.Sqrt((frequencyArr_input[i]/200.0) * (frequencyArr_candidate[i]/200.0));
+                //bhattacharyyaCoeff += Math.Pow(frequencyArr_input[i] - frequencyArr_candidate[i], 2);
+            }
+
+            return new Tuple<double, ImageModel>(bhattacharyyaCoeff, candidateModel);
+        }
+
+        private int[] GetFrequency(byte[] histogram)
+        {
+            int[] frequencyArr = Enumerable.Repeat(0, 256).ToArray();
+            Bitmap histogramImage = new Bitmap(new MemoryStream(histogram));
+
+            // start in left bottom corner
+            for (int col = 0; col < histogramImage.Width; col++)
+            {
+                for (int row = histogramImage.Height - 1; row >= 0; row--)
+                {
+                    Color color = histogramImage.GetPixel(col, row);
+
+                    if (color.R == 0 && color.G == 0 && color.B == 0)
+                        break;
+
+                    frequencyArr[col]++;
+                }
+            }
+
+            return frequencyArr;
         }
 
         #endregion

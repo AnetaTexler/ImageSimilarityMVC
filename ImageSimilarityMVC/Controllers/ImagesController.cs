@@ -33,7 +33,7 @@ namespace ImageSimilarityMVC.Controllers
         }
 
         // GET: Images/Details/5
-        public ActionResult Details(int? id)
+        public ActionResult Details(int? id, string similarImagesToDisplayCnt, string similarityFunction)
         {
             if (id == null)
             {
@@ -45,6 +45,13 @@ namespace ImageSimilarityMVC.Controllers
             if (imageModel == null)
             {
                 return HttpNotFound();
+            }
+
+            if (!String.IsNullOrEmpty(similarImagesToDisplayCnt) && !String.IsNullOrEmpty(similarityFunction))
+            {
+                ViewBag.DisplayCnt = similarImagesToDisplayCnt;
+                ViewBag.SimFunction = similarityFunction;
+                return RedirectToAction("ShowSimilar", new { id = imageModel.ID, similarImagesToDisplayCnt = ViewBag.DisplayCnt, similarityFunction = ViewBag.SimFunction });
             }
 
             return View(imageModel);
@@ -173,8 +180,8 @@ namespace ImageSimilarityMVC.Controllers
             base.Dispose(disposing);
         }
 
-        // GET: Images/ShowSimilar/5
-        public ActionResult ShowSimilar(int? id)
+        // GET: Images/ShowSimilar/5?similarImagesToDisplayCnt=.....
+        public ActionResult ShowSimilar(int? id, string similarImagesToDisplayCnt, string similarityFunction)
         {
             if (id == null)
             {
@@ -188,33 +195,61 @@ namespace ImageSimilarityMVC.Controllers
                 return HttpNotFound();
             }
 
-            List<ImageModel> allImageModels = db.Images.ToList();
-            allImageModels.RemoveAt(allImageModels.IndexOf(inputImageModel)); // list of pontencial similar images except from the input image
+            ViewBag.DisplayCnt = similarImagesToDisplayCnt;
+            ViewBag.SimFunction = similarityFunction;
 
-            List<Tuple<double, ImageModel>> bhattacharyyaCoeffImagePairList = new List<Tuple<double, ImageModel>>();
+            List<ImageModel> candidateImageModels = db.Images.ToList();
+            candidateImageModels.RemoveAt(candidateImageModels.IndexOf(inputImageModel)); // list of pontencial similar images except from the input image
 
-            foreach (ImageModel model in allImageModels)
+            //List<Tuple<double, ImageModel>> bhattacharyyaDistanceImagePairList = new List<Tuple<double, ImageModel>>();
+            List<Tuple<double, double, double, double, ImageModel>> similarityTupleList = new List<Tuple<double, double, double, double, ImageModel>>();
+
+            // GET FREQUENCY ARRAY FROM INPUT IMAGE HISTOGRAMS -------------
+            int[] frequencyArrR_input = GetFrequency(inputImageModel.HistogramR);
+            int[] frequencyArrG_input = GetFrequency(inputImageModel.HistogramG);
+            int[] frequencyArrB_input = GetFrequency(inputImageModel.HistogramB);
+            // 16 BINS (each bin is 16px wide with same values - average from each 16 values from frequency array)
+            int binSize = 16; // have to be the power of 2, smaller than 256!!
+            ModifyFrequencyArr(ref frequencyArrR_input, binSize);
+            ModifyFrequencyArr(ref frequencyArrG_input, binSize);
+            ModifyFrequencyArr(ref frequencyArrB_input, binSize);
+            // -------------------------------------------------------------
+
+            foreach (ImageModel candidateImageModel in candidateImageModels)
             {
-                Tuple<double, ImageModel> bhattacharyyaCoeffImagePair = CompareAndGetRateOfSimilarity(inputImageModel, model);
-                bhattacharyyaCoeffImagePairList.Add(bhattacharyyaCoeffImagePair);
+                switch (similarityFunction)
+                {
+                    case "1": // EUCLIDEAN
+                        similarityTupleList.Add(CompareAndGetRateOfSimilarity(frequencyArrR_input, frequencyArrG_input, frequencyArrB_input, candidateImageModel, binSize, "1"));
+                        break;
+                    case "2": // BHATTACHARYYA
+                        similarityTupleList.Add(CompareAndGetRateOfSimilarity(frequencyArrR_input, frequencyArrG_input, frequencyArrB_input, candidateImageModel, binSize, "2"));
+                        break;
+                    default:
+                        throw new Exception("Unknown similarity function.");
+                }
             }
 
-            // descending sort (bhattacharyya coefficient from higher to lowest)
-            bhattacharyyaCoeffImagePairList.Sort((x, y) => y.Item1.CompareTo(x.Item1));
+            // DESCENDING SORT
+            similarityTupleList.Sort((x, y) => y.Item1.CompareTo(x.Item1));
 
-            // get first x similar images
-            int similarImagesToDisplay = 5;
-            ViewBag.SimilarImages = bhattacharyyaCoeffImagePairList.Take(similarImagesToDisplay).ToList();
+            int cntToDisplay = Int32.Parse(similarImagesToDisplayCnt);
+            if (cntToDisplay > similarityTupleList.Count)
+                cntToDisplay = similarityTupleList.Count;
 
-            allImageModels.Clear();
-            bhattacharyyaCoeffImagePairList.Clear();
+            ViewBag.SimilarImages = similarityTupleList.Take(cntToDisplay).ToList();
+
+            candidateImageModels.Clear();
+            similarityTupleList.Clear();
 
             return View(inputImageModel);
         }
 
 
+
         #region Private methods
 
+        #region EXTRACT HISTOGRAMS, NORMALIZE THEM AND SAVE THEM TO IMAGE MODEL
         private void AddSizeAndHistograms(ref ImageModel imageModel)
         {
             Bitmap imageBitmap = new Bitmap(new MemoryStream(imageModel.Image));
@@ -283,33 +318,90 @@ namespace ImageSimilarityMVC.Controllers
             }
         }
 
-        private byte[] StreamToBytes(Stream input)
+        #endregion
+        //============================================================================================================
+
+        #region COMPARE HISTOGRAMS, GET RATE OF SIMILARITY
+        private Tuple<double, double, double, double, ImageModel> CompareAndGetRateOfSimilarity(int[] frequencyArrR_input, int[] frequencyArrG_input, int[] frequencyArrB_input, ImageModel candidateModel, int binSize, string simFunciton)
         {
-            byte[] buffer = new byte[16 * 1024];
-            using (MemoryStream ms = new MemoryStream())
+            double distanceR = 0.0;
+            double distanceG = 0.0;
+            double distanceB = 0.0;
+            double resultDistance = 0.0;
+            int[] frequencyArrR_candidate = GetFrequency(candidateModel.HistogramR);
+            int[] frequencyArrG_candidate = GetFrequency(candidateModel.HistogramG);
+            int[] frequencyArrB_candidate = GetFrequency(candidateModel.HistogramB);
+
+            // 16 BINS (each bin is 16px wide with same values - average from each 16 values from frequency array)
+            ModifyFrequencyArr(ref frequencyArrR_candidate, binSize);
+            ModifyFrequencyArr(ref frequencyArrG_candidate, binSize);
+            ModifyFrequencyArr(ref frequencyArrB_candidate, binSize);
+
+            switch (simFunciton)
             {
-                int read;
-                while ((read = input.Read(buffer, 0, buffer.Length)) > 0)
-                {
-                    ms.Write(buffer, 0, read);
-                }
-                return ms.ToArray();
+                case "1": // EUCLIDEAN DISTANCE (lowest = exact match)
+                    for (int i = 0; i < 256; i += binSize)
+                    {
+                        distanceR += Math.Pow((frequencyArrR_input[i] - frequencyArrR_candidate[i]) / 200.0, 2);
+                        distanceG += Math.Pow((frequencyArrG_input[i] - frequencyArrG_candidate[i]) / 200.0, 2);
+                        distanceB += Math.Pow((frequencyArrB_input[i] - frequencyArrB_candidate[i]) / 200.0, 2);
+                    }
+
+                    distanceR = Math.Sqrt(distanceR / (256 / binSize));
+                    distanceG = Math.Sqrt(distanceG / (256 / binSize));
+                    distanceB = Math.Sqrt(distanceB / (256 / binSize));
+
+                    // convert to %
+                    distanceR = (100 - (distanceR * 100));
+                    distanceG = (100 - (distanceG * 100));
+                    distanceB = (100 - (distanceB * 100));
+
+                    resultDistance = (distanceR + distanceG + distanceB) / 3; // convert to % and count average
+                    break;
+
+                case "2": // BHATTACHARYYA DISTANCE (highest = exact match)
+                    for (int i = 0; i < 256; i += binSize)
+                    {
+                        //distanceR += Math.Sqrt(((frequencyArrR_input[i] / 200.0) * (frequencyArrR_candidate[i] / 200.0))) / (256 / binSize);
+                        //distanceG += Math.Sqrt(((frequencyArrG_input[i] / 200.0) * (frequencyArrG_candidate[i] / 200.0))) / (256 / binSize);
+                        //distanceB += Math.Sqrt(((frequencyArrB_input[i] / 200.0) * (frequencyArrB_candidate[i] / 200.0))) / (256 / binSize);
+                        distanceR += Math.Sqrt(((frequencyArrR_input[i]) * (frequencyArrR_candidate[i])));
+                        distanceG += Math.Sqrt(((frequencyArrG_input[i]) * (frequencyArrG_candidate[i])));
+                        distanceB += Math.Sqrt(((frequencyArrB_input[i]) * (frequencyArrB_candidate[i])));
+                    }
+
+                    //distanceR = distanceR / 200.0 / (256 / binSize);
+                    //distanceG = distanceG / 200.0 / (256 / binSize);
+                    //distanceB = distanceB / 200.0 / (256 / binSize);
+
+                    // convert to %
+                    distanceR = (distanceR * 100);
+                    distanceG = (distanceG * 100);
+                    distanceB = (distanceB * 100);
+
+                    resultDistance = (distanceR + distanceG + distanceB) / 3; // count average
+                    break;
             }
+            
+            return new Tuple<double, double, double, double, ImageModel>(resultDistance, distanceR, distanceG, distanceB, candidateModel);
         }
 
-        private Tuple<double, ImageModel> CompareAndGetRateOfSimilarity(ImageModel inputModel, ImageModel candidateModel)
+        private void ModifyFrequencyArr(ref int[] frequencyArr, int binSize)
         {
-            double bhattacharyyaCoeff = 0.0;
-            int[] frequencyArr_input = GetFrequency(inputModel.HistogramR);
-            int[] frequencyArr_candidate = GetFrequency(candidateModel.HistogramR);
-
-            for (int i = 0; i < 256; i++)
+            
+            for (int i = 0; i < 256; i += binSize)
             {
-                bhattacharyyaCoeff += Math.Sqrt((frequencyArr_input[i]/200.0) * (frequencyArr_candidate[i]/200.0));
-                //bhattacharyyaCoeff += Math.Pow(frequencyArr_input[i] - frequencyArr_candidate[i], 2);
+                int sum = 0;
+                for (int j = i; j < i + binSize; j++)
+                {
+                    sum += frequencyArr[j];
+                }
+                int avg = sum / binSize;
+                for (int j = i; j < i + binSize; j++)
+                {
+                    frequencyArr[j] = avg;
+                }
             }
-
-            return new Tuple<double, ImageModel>(bhattacharyyaCoeff, candidateModel);
         }
 
         private int[] GetFrequency(byte[] histogram)
@@ -317,7 +409,7 @@ namespace ImageSimilarityMVC.Controllers
             int[] frequencyArr = Enumerable.Repeat(0, 256).ToArray();
             Bitmap histogramImage = new Bitmap(new MemoryStream(histogram));
 
-            // start in left bottom corner
+            // start in left bottom corner of image
             for (int col = 0; col < histogramImage.Width; col++)
             {
                 for (int row = histogramImage.Height - 1; row >= 0; row--)
@@ -332,6 +424,23 @@ namespace ImageSimilarityMVC.Controllers
             }
 
             return frequencyArr;
+        }
+
+        #endregion
+        //============================================================================================================
+
+        private byte[] StreamToBytes(Stream input)
+        {
+            byte[] buffer = new byte[16 * 1024];
+            using (MemoryStream ms = new MemoryStream())
+            {
+                int read;
+                while ((read = input.Read(buffer, 0, buffer.Length)) > 0)
+                {
+                    ms.Write(buffer, 0, read);
+                }
+                return ms.ToArray();
+            }
         }
 
         #endregion

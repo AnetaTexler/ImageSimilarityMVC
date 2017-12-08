@@ -131,11 +131,21 @@ namespace ImageSimilarityMVC.Controllers
         // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Edit([Bind(Include = "Name")] ImageModel imageModel)
+        public ActionResult Edit([Bind(Include = "ID,TimeStamp,Name,Type,Size,Image,HistogramR,HistogramG,HistogramB")] ImageModel imageModel)
         {
             if (ModelState.IsValid)
             {
                 db.Entry(imageModel).State = EntityState.Modified;
+
+                // preserve following
+                db.Entry(imageModel).Property(x => x.Size).IsModified = false;
+                db.Entry(imageModel).Property(x => x.TimeStamp).IsModified = false;
+                db.Entry(imageModel).Property(x => x.Type).IsModified = false;
+                db.Entry(imageModel).Property(x => x.Image).IsModified = false;
+                db.Entry(imageModel).Property(x => x.HistogramR).IsModified = false;
+                db.Entry(imageModel).Property(x => x.HistogramG).IsModified = false;
+                db.Entry(imageModel).Property(x => x.HistogramB).IsModified = false;
+
                 db.SaveChanges();
                 return RedirectToAction("Index");
             }
@@ -199,31 +209,34 @@ namespace ImageSimilarityMVC.Controllers
             ViewBag.SimFunction = similarityFunction;
 
             List<ImageModel> candidateImageModels = db.Images.ToList();
-            candidateImageModels.RemoveAt(candidateImageModels.IndexOf(inputImageModel)); // list of pontencial similar images except from the input image
+            candidateImageModels.RemoveAt(candidateImageModels.IndexOf(inputImageModel)); // list of pontencial similar images apart from the input image
 
             //List<Tuple<double, ImageModel>> bhattacharyyaDistanceImagePairList = new List<Tuple<double, ImageModel>>();
             List<Tuple<double, double, double, double, ImageModel>> similarityTupleList = new List<Tuple<double, double, double, double, ImageModel>>();
 
-            // GET FREQUENCY ARRAY FROM INPUT IMAGE HISTOGRAMS -------------
+            // GET FREQUENCY ARRAY FROM INPUT IMAGE HISTOGRAMS ------------------------------------------------
             int[] frequencyArrR_input = GetFrequency(inputImageModel.HistogramR);
             int[] frequencyArrG_input = GetFrequency(inputImageModel.HistogramG);
             int[] frequencyArrB_input = GetFrequency(inputImageModel.HistogramB);
-            // 16 BINS (each bin is 16px wide with same values - average from each 16 values from frequency array)
+            // 16 BINS (each bin is 16px wide with same values - average of each 16 values from frequency array)
             int binSize = 16; // have to be the power of 2, smaller than 256!!
-            ModifyFrequencyArr(ref frequencyArrR_input, binSize);
-            ModifyFrequencyArr(ref frequencyArrG_input, binSize);
-            ModifyFrequencyArr(ref frequencyArrB_input, binSize);
-            // -------------------------------------------------------------
+            int sumOfRPixels, sumOfGPixels, sumOfBPixels;
+            ModifyFrequencyArr(ref frequencyArrR_input, binSize, out sumOfRPixels); // out - sum of one column in each bin
+            ModifyFrequencyArr(ref frequencyArrG_input, binSize, out sumOfGPixels);
+            ModifyFrequencyArr(ref frequencyArrB_input, binSize, out sumOfBPixels);
+            // -------------------------------------------------------------------------------------------------
 
             foreach (ImageModel candidateImageModel in candidateImageModels)
             {
                 switch (similarityFunction)
                 {
                     case "1": // EUCLIDEAN
-                        similarityTupleList.Add(CompareAndGetRateOfSimilarity(frequencyArrR_input, frequencyArrG_input, frequencyArrB_input, candidateImageModel, binSize, "1"));
+                        similarityTupleList.Add(CompareImages(frequencyArrR_input, frequencyArrG_input, frequencyArrB_input, 
+                                                              sumOfRPixels, sumOfGPixels, sumOfBPixels, candidateImageModel, binSize, "1"));
                         break;
                     case "2": // BHATTACHARYYA
-                        similarityTupleList.Add(CompareAndGetRateOfSimilarity(frequencyArrR_input, frequencyArrG_input, frequencyArrB_input, candidateImageModel, binSize, "2"));
+                        similarityTupleList.Add(CompareImages(frequencyArrR_input, frequencyArrG_input, frequencyArrB_input,
+                                                              sumOfRPixels, sumOfGPixels, sumOfBPixels, candidateImageModel, binSize, "2"));
                         break;
                     default:
                         throw new Exception("Unknown similarity function.");
@@ -252,6 +265,7 @@ namespace ImageSimilarityMVC.Controllers
         #region EXTRACT HISTOGRAMS, NORMALIZE THEM AND SAVE THEM TO IMAGE MODEL
         private void AddSizeAndHistograms(ref ImageModel imageModel)
         {
+ 
             Bitmap imageBitmap = new Bitmap(new MemoryStream(imageModel.Image));
             int[] frequencyArr_channelR = Enumerable.Repeat(0, 256).ToArray(); // red 
             int[] frequencyArr_channelG = Enumerable.Repeat(0, 256).ToArray(); // green
@@ -274,9 +288,9 @@ namespace ImageSimilarityMVC.Controllers
             Normalize(ref frequencyArr_channelB);
 
             // create histogram images
-            Bitmap histogramImageR = new Bitmap(256, frequencyArr_channelR.Max());
-            Bitmap histogramImageG = new Bitmap(256, frequencyArr_channelG.Max());
-            Bitmap histogramImageB = new Bitmap(256, frequencyArr_channelB.Max());
+            Bitmap histogramImageR = new Bitmap(256, 200 /*frequencyArr_channelR.Max()*/);
+            Bitmap histogramImageG = new Bitmap(256, 200 /*frequencyArr_channelG.Max()*/);
+            Bitmap histogramImageB = new Bitmap(256, 200 /*frequencyArr_channelB.Max()*/);
 
             CreateImage(frequencyArr_channelR, Color.Red, ref histogramImageR);
             CreateImage(frequencyArr_channelG, Color.Green, ref histogramImageG);
@@ -292,7 +306,7 @@ namespace ImageSimilarityMVC.Controllers
         {
             double norm = frequencyArr.Max() / 200.0;
             for (int i = 0; i < frequencyArr.Length; i++)
-                frequencyArr[i] = (int)Math.Ceiling((double)frequencyArr[i] / norm);
+                frequencyArr[i] = (int)Math.Ceiling(frequencyArr[i] / norm);
         }
 
         private void CreateImage(int[] frequencyArr, Color color, ref Bitmap histogramImage)
@@ -322,20 +336,25 @@ namespace ImageSimilarityMVC.Controllers
         //============================================================================================================
 
         #region COMPARE HISTOGRAMS, GET RATE OF SIMILARITY
-        private Tuple<double, double, double, double, ImageModel> CompareAndGetRateOfSimilarity(int[] frequencyArrR_input, int[] frequencyArrG_input, int[] frequencyArrB_input, ImageModel candidateModel, int binSize, string simFunciton)
+        private Tuple<double, double, double, double, ImageModel> CompareImages(int[] frequencyArrR_input, int[] frequencyArrG_input, int[] frequencyArrB_input,
+                                                                                int sumOfRPxlsInOneColInEachBin_input, int sumOfGPxlsInOneColInEachBin_input, 
+                                                                                int sumOfBPxlsInOneColInEachBin_input, ImageModel candidateModel, int binSize, 
+                                                                                string simFunciton)
         {
             double distanceR = 0.0;
             double distanceG = 0.0;
             double distanceB = 0.0;
             double resultDistance = 0.0;
+            
             int[] frequencyArrR_candidate = GetFrequency(candidateModel.HistogramR);
             int[] frequencyArrG_candidate = GetFrequency(candidateModel.HistogramG);
             int[] frequencyArrB_candidate = GetFrequency(candidateModel.HistogramB);
 
-            // 16 BINS (each bin is 16px wide with same values - average from each 16 values from frequency array)
-            ModifyFrequencyArr(ref frequencyArrR_candidate, binSize);
-            ModifyFrequencyArr(ref frequencyArrG_candidate, binSize);
-            ModifyFrequencyArr(ref frequencyArrB_candidate, binSize);
+            // 16 BINS (each bin is 16px wide with same values - average of each 16 values from frequency array)
+            int sumOfRPxlsInOneColInEachBin_candidate, sumOfGPxlsInOneColInEachBin_candidate, sumOfBPxlsInOneColInEachBin_candidate;
+            ModifyFrequencyArr(ref frequencyArrR_candidate, binSize, out sumOfRPxlsInOneColInEachBin_candidate);
+            ModifyFrequencyArr(ref frequencyArrG_candidate, binSize, out sumOfGPxlsInOneColInEachBin_candidate);
+            ModifyFrequencyArr(ref frequencyArrB_candidate, binSize, out sumOfBPxlsInOneColInEachBin_candidate);
 
             switch (simFunciton)
             {
@@ -362,17 +381,11 @@ namespace ImageSimilarityMVC.Controllers
                 case "2": // BHATTACHARYYA DISTANCE (highest = exact match)
                     for (int i = 0; i < 256; i += binSize)
                     {
-                        //distanceR += Math.Sqrt(((frequencyArrR_input[i] / 200.0) * (frequencyArrR_candidate[i] / 200.0))) / (256 / binSize);
-                        //distanceG += Math.Sqrt(((frequencyArrG_input[i] / 200.0) * (frequencyArrG_candidate[i] / 200.0))) / (256 / binSize);
-                        //distanceB += Math.Sqrt(((frequencyArrB_input[i] / 200.0) * (frequencyArrB_candidate[i] / 200.0))) / (256 / binSize);
-                        distanceR += Math.Sqrt(((frequencyArrR_input[i]) * (frequencyArrR_candidate[i])));
-                        distanceG += Math.Sqrt(((frequencyArrG_input[i]) * (frequencyArrG_candidate[i])));
-                        distanceB += Math.Sqrt(((frequencyArrB_input[i]) * (frequencyArrB_candidate[i])));
+                        // values are devided by sum of all non black pixels in a column in a bin  - to get precentages share of a color in a histogram (histogram devided to bins)
+                        distanceR += Math.Sqrt(((frequencyArrR_input[i] / ((double)sumOfRPxlsInOneColInEachBin_input)) * (frequencyArrR_candidate[i] / ((double)sumOfRPxlsInOneColInEachBin_candidate))));
+                        distanceG += Math.Sqrt(((frequencyArrG_input[i] / ((double)sumOfGPxlsInOneColInEachBin_input)) * (frequencyArrG_candidate[i] / ((double)sumOfGPxlsInOneColInEachBin_candidate))));
+                        distanceB += Math.Sqrt(((frequencyArrB_input[i] / ((double)sumOfBPxlsInOneColInEachBin_input)) * (frequencyArrB_candidate[i] / ((double)sumOfBPxlsInOneColInEachBin_candidate))));
                     }
-
-                    //distanceR = distanceR / 200.0 / (256 / binSize);
-                    //distanceG = distanceG / 200.0 / (256 / binSize);
-                    //distanceB = distanceB / 200.0 / (256 / binSize);
 
                     // convert to %
                     distanceR = (distanceR * 100);
@@ -386,9 +399,9 @@ namespace ImageSimilarityMVC.Controllers
             return new Tuple<double, double, double, double, ImageModel>(resultDistance, distanceR, distanceG, distanceB, candidateModel);
         }
 
-        private void ModifyFrequencyArr(ref int[] frequencyArr, int binSize)
+        private void ModifyFrequencyArr(ref int[] frequencyArr, int binSize, out int sumOfNonBlackPixels)
         {
-            
+            sumOfNonBlackPixels = 0;
             for (int i = 0; i < 256; i += binSize)
             {
                 int sum = 0;
@@ -401,6 +414,7 @@ namespace ImageSimilarityMVC.Controllers
                 {
                     frequencyArr[j] = avg;
                 }
+                sumOfNonBlackPixels += frequencyArr[i];
             }
         }
 

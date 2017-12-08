@@ -5,69 +5,72 @@
 }
 <br /><br />
 <h2>Image details</h2>
-<p class="lead">Choose count of similar images you want to display.</p>
-<p class="lead">Choose similarity function you want to use in comparsion of images.</p>
-<p class="lead">Click on "Show similar images" button to display similar images.</p>
-    <div>
-        <hr />
-        <div class="row">
-            <div class="col-md-9">
-                <h5>Original image:</h5>
-                <p>
-                    <span class="badge badge-pill badge-dark">@Html.DisplayNameFor(model => model.TimeStamp)</span>
-                    <span class="badge badge-pill badge-light">@Html.DisplayFor(model => model.TimeStamp)</span>
-                    <span class="badge badge-pill badge-dark">@Html.DisplayNameFor(model => model.Name)</span>
-                    <span class="badge badge-pill badge-light">@Html.DisplayFor(model => model.Name)</span>
-                    <span class="badge badge-pill badge-dark">@Html.DisplayNameFor(model => model.Type)</span>
-                    <span class="badge badge-pill badge-light">@Html.DisplayFor(model => model.Type)</span>
-                    <span class="badge badge-pill badge-dark">@Html.DisplayNameFor(model => model.Size)</span>
-                    <span class="badge badge-pill badge-light">@Html.DisplayFor(model => model.Size)</span>
-                </p>
-
-                <p>
-                    <img src="data:image;base64,@System.Convert.ToBase64String(Model.Image)" alt="Image" height="450" />
-                </p>
-                <br />
-                @using (Html.BeginForm())
-                {
-                <div class="row">
-                    <div class="col-md-6">
-                        <p class="lead offset-1">Choose count of similar images to display:</p>
-                        <div class="btn-group offset-2" data-toggle="buttons">
-                            <label class="btn btn-outline-primary">
-                                @Html.RadioButton("similarImagesToDisplayCnt", "1") <span>1</span>
-                            </label>
-                            <label class="btn btn-outline-primary">
-                                @Html.RadioButton("similarImagesToDisplayCnt", "3") <span>3</span>
-                            </label>
-                            <label class="btn btn-outline-primary active">
-                                @Html.RadioButton("similarImagesToDisplayCnt", "5", true) <span>5</span>
-                            </label>
-                            <label class="btn btn-outline-primary">
-                                @Html.RadioButton("similarImagesToDisplayCnt", "10") <span>10</span>
-                            </label>
-                            <label class="btn btn-outline-primary">
-                                @Html.RadioButton("similarImagesToDisplayCnt", "20") <span>20</span>
-                            </label>
-                        </div>
+<p class="lead">
+    Choose count of similar images you want to display.<br />
+    Choose similarity function you want to use in comparsion of images.<br />
+    Click on "Show similar images" button to display similar images.
+</p>
+<div>
+    <hr />
+    <div class="row">
+        <div class="col-md-9">
+            @using (Html.BeginForm())
+            {
+                <div class="card border-dark mb-3" style="min-height: 846px;">
+                    <div class="card-header"><h4>Original image</h4></div>
+                    <div class="card-body text-dark" style="max-height: 64px;">
+                        <span class="badge badge-pill badge-dark">@Html.DisplayNameFor(model => model.TimeStamp)</span>
+                        <span class="badge badge-pill badge-light">@Html.DisplayFor(model => model.TimeStamp)</span>
+                        <span class="badge badge-pill badge-dark">@Html.DisplayNameFor(model => model.Name)</span>
+                        <span class="badge badge-pill badge-light">@Html.DisplayFor(model => model.Name)</span>
+                        <span class="badge badge-pill badge-dark">@Html.DisplayNameFor(model => model.Type)</span>
+                        <span class="badge badge-pill badge-light">@Html.DisplayFor(model => model.Type)</span>
+                        <span class="badge badge-pill badge-dark">@Html.DisplayNameFor(model => model.Size)</span>
+                        <span class="badge badge-pill badge-light">@Html.DisplayFor(model => model.Size)</span>
                     </div>
+                    <img style="width: 100%; display: block; min-height: 460px" src="data:image;base64,@System.Convert.ToBase64String(Model.Image)" alt="Image" />
+                    <br />
+                    <div class="card-body text-dark">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <p class="lead offset-2">Choose count of similar images to display:</p>
+                                <div class="btn-group offset-3" data-toggle="buttons">
+                                    <label class="btn btn-outline-primary">
+                                        @Html.RadioButton("similarImagesToDisplayCnt", "1", new { @id = "rbDisp1" }) <span>1</span>
+                                    </label>
+                                    <label class="btn btn-outline-primary">
+                                        @Html.RadioButton("similarImagesToDisplayCnt", "3", new { @id = "rbDisp3" }) <span>3</span>
+                                    </label>
+                                    <label class="btn btn-outline-primary active">
+                                        @Html.RadioButton("similarImagesToDisplayCnt", "5", true, new { @id = "rbDisp5" }) <span>5</span>
+                                    </label>
+                                    <label class="btn btn-outline-primary">
+                                        @Html.RadioButton("similarImagesToDisplayCnt", "10", new { @id = "rbDisp10" }) <span>10</span>
+                                    </label>
+                                    <label class="btn btn-outline-primary">
+                                        @Html.RadioButton("similarImagesToDisplayCnt", "20", new { @id = "rbDisp20" }) <span>20</span>
+                                    </label>
+                                </div>
+                            </div>
 
-                    <div class="col-md-6">
-                        <p class="lead">Choose similarity function:</p>
-                        <fieldset class="form-group">
-                            <div class="form-check">
-                                <label class="form-check-label">
-                                    @Html.RadioButton("similarityFunction", "1", true, new { @class = "form-check-input" })
-                                    <span>Euclidean distance</span>
-                                </label>
+                            <div class="col-md-6">
+                                <p class="lead offset-1">Choose similarity function:</p>
+                                <fieldset class="form-group offset-2">
+                                    <div class="form-check">
+                                        <label class="form-check-label">
+                                            @Html.RadioButton("similarityFunction", "1", true, new { @class = "form-check-input", @id = "rbFunc1" })
+                                            <span>Euclidean distance</span>
+                                        </label>
+                                    </div>
+                                    <div class="form-check">
+                                        <label class="form-check-label">
+                                            @Html.RadioButton("similarityFunction", "2", new { @class = "form-check-input", @id = "rbFunc2" })
+                                            <span>Bhattacharyya coefficient</span>
+                                        </label>
+                                    </div>
+                                </fieldset>
                             </div>
-                            <div class="form-check">
-                                <label class="form-check-label">
-                                    @Html.RadioButton("similarityFunction", "2", new { @class = "form-check-input" })
-                                    <span>Bhattacharyya distance</span>
-                                </label>
-                            </div>
-                        </fieldset>
+                        </div>
                     </div>
                 </div>
                 <div>
@@ -75,15 +78,25 @@
                     <input type="submit" value="Show similar images" class="btn btn-success btn-lg" />
                     @*@Html.ActionLink("Show similar images", "ShowSimilar", new { id = Model.ID }, new { @class = "btn btn-success btn-lg" })*@
                 </div>
-                }
-            </div>
-            <div class="col-md-3 text-right">
-                <h5>Image RGB histograms:</h5>
-                <p><img src="data:image;base64,@System.Convert.ToBase64String(Model.HistogramR)" alt="HistogramR" /></p>
-                <p><img src="data:image;base64,@System.Convert.ToBase64String(Model.HistogramG)" alt="HistoramG" /></p>
-                <p><img src="data:image;base64,@System.Convert.ToBase64String(Model.HistogramB)" alt="HistogramB" /></p>
+            }
+        </div>
+
+        <div class="col-md-3 pull-right">
+            <div class="card border-dark mb-3" style="min-height: 775px;">
+                <div class="card-header"><h4>RGB histograms</h4></div>
+                <div class="card-body text-dark">
+                    Red channel:
+                </div>
+                <img style="width: 100%; display: block;" src="data:image;base64,@System.Convert.ToBase64String(Model.HistogramR)" alt="HistogramR" />
+                <div class="card-body text-dark">
+                    Green channel:
+                </div>
+                <img style="width: 100%; display: block;" src="data:image;base64,@System.Convert.ToBase64String(Model.HistogramG)" alt="HistoramG" />
+                <div class="card-body text-dark">
+                    Blue channel:
+                </div>
+                <img style="width: 100%; display: block;" src="data:image;base64,@System.Convert.ToBase64String(Model.HistogramB)" alt="HistogramB" />
             </div>
         </div>
     </div>
-
-
+</div>

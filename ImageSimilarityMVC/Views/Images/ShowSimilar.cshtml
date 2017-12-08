@@ -10,71 +10,76 @@
 <div>
     <hr />
     <h3>Input image:</h3>
+    <hr />
+    <br />
     <div class="row">
-        <div class="col-md-3">
-            <p>
-                <img src="data:image;base64,@System.Convert.ToBase64String(Model.Image)" alt="Image" height="200" />
-            </p>
+        <div class="col-md-5">
+            <div class="card border-dark mb-3" style="max-height: 350px">
+                <div class="card-header">Original image</div>
+                <img style="width: 100%; display: block; max-height: 300px" src="data:image;base64,@System.Convert.ToBase64String(Model.Image)" alt="Image" />
+            </div>
         </div>
-        <div class="col-md-9 text-right">
-            <p>
-                <img src="data:image;base64,@System.Convert.ToBase64String(Model.HistogramR)" alt="HistogramR" />
-                <img src="data:image;base64,@System.Convert.ToBase64String(Model.HistogramG)" alt="HistoramG" />
-                <img src="data:image;base64,@System.Convert.ToBase64String(Model.HistogramB)" alt="HistogramB" />
-            </p>
+        <div class="col-md-7">
+            <div class="card border-dark mb-3" style="display: inline-block">
+                <div class="card-header">RGB histograms</div>
+                <img style="width: 32.863%;" src="data:image;base64,@System.Convert.ToBase64String(Model.HistogramR)" alt="HistogramR" />
+                <img style="width: 32.863%;" src="data:image;base64,@System.Convert.ToBase64String(Model.HistogramG)" alt="HistoramG" />
+                <img style="width: 32.863%;" src="data:image;base64,@System.Convert.ToBase64String(Model.HistogramB)" alt="HistogramB" />
+            </div>
+            <div>
+                @Html.ActionLink("Back to Details", "Details", new { id = Model.ID }, new { @class = "btn btn-info" })
+            </div>
         </div>
     </div>
+    <hr />
     <div>
         @Html.ActionLink("Back to List", "Index", null, new { @class = "btn btn-secondary" })
-        @Html.ActionLink("Go to Details", "Details", new { id = Model.ID }, new { @class = "btn btn-info" })
     </div>
 </div>
-
+<br />
 <div>
     <hr />
     <h3>
         Set of @(ViewBag.DisplayCnt)
         similar image@(ViewBag.DisplayCnt != "1" ? "s" : "")
-        @(ViewBag.SimFunction == "1" ? "by Euclidean distance" : "by Bhattacharyya distance"):
+        @(ViewBag.SimFunction == "1" ? "by Euclidean distance" : "by Bhattacharyya coefficient"):
     </h3>
     <hr />
-    
+    <br />
     @foreach (var item in ViewBag.SimilarImages)
     {
-        <div>
-            <p>
-                <span class="badge badge-warning">@(ViewBag.SimilarImages.IndexOf(item) + 1) .</span>
-
-                <span class="badge badge-pill badge-dark offset-sm-1">Result similarity</span>
-                <span class="badge badge-pill badge-light">@string.Format("{0:N2}%", item.Item1)</span>
-                <span class="badge badge-pill badge-danger offset-sm-2">R channel similarity</span>
-                <span class="badge badge-pill badge-light">@string.Format("{0:N2}%", item.Item2)</span>
-                <span class="badge badge-pill badge-success offset-1">G channel similarity</span>
-                <span class="badge badge-pill badge-light">@string.Format("{0:N2}%", item.Item3)</span>
-                <span class="badge badge-pill badge-info offset-1">B channel similarity</span>
-                <span class="badge badge-pill badge-light">@string.Format("{0:N2}%", item.Item4)</span>
-            </p>
-        </div>
         <div class="row">
-            <div class="col-md-3">
-                <p>
-                    <img src="data:image;base64,@System.Convert.ToBase64String(item.Item5.Image)" alt="Image" height="200" />
-                </p>
+            <div class="col-md-5">
+                <div class="card border-dark mb-3" style="max-height: 350px">
+                    <div class="card-header">
+                        <span class="badge badge-warning">@(ViewBag.SimilarImages.IndexOf(item) + 1) .</span>
+                        <span class="badge badge-pill badge-dark offset-2">Result similarity</span>
+                        <span class="badge badge-pill badge-light">@string.Format("{0:N2}%", item.Item1)</span>
+                    </div>
+                    <img style="width: 100%; display: block; max-height: 300px;" src="data:image;base64,@System.Convert.ToBase64String(item.Item5.Image)" alt="Image" />
+                </div>
             </div>
-            <div class="col-md-9 text-right">
-                <p>
-                    <img src="data:image;base64,@System.Convert.ToBase64String(item.Item5.HistogramR)" alt="HistogramR" />
-                    <img src="data:image;base64,@System.Convert.ToBase64String(item.Item5.HistogramG)" alt="HistoramG" />
-                    <img src="data:image;base64,@System.Convert.ToBase64String(item.Item5.HistogramB)" alt="HistogramB" />
-                </p>
+            <div class="col-md-7">
+                <div class="card border-dark mb-3" style="display: inline-block">
+                    <div class="card-header">
+                        <span class="badge badge-pill badge-danger">R channel similarity</span>
+                        <span class="badge badge-pill badge-light">@string.Format("{0:N2}%", item.Item2)</span>
+                        <span class="badge badge-pill badge-success offset-sm-1">G channel similarity</span>
+                        <span class="badge badge-pill badge-light">@string.Format("{0:N2}%", item.Item3)</span>
+                        <span class="badge badge-pill badge-info offset-sm-1">B channel similarity</span>
+                        <span class="badge badge-pill badge-light">@string.Format("{0:N2}%", item.Item4)</span>
+                    </div>
+                    <img style="width: 32.863%;" src="data:image;base64,@System.Convert.ToBase64String(item.Item5.HistogramR)" alt="HistogramR" />
+                    <img style="width: 32.863%;" src="data:image;base64,@System.Convert.ToBase64String(item.Item5.HistogramG)" alt="HistoramG" />
+                    <img style="width: 32.863%;" src="data:image;base64,@System.Convert.ToBase64String(item.Item5.HistogramB)" alt="HistogramB" />
+                </div>
+                <div>
+                    @Html.ActionLink("Go to Details", "Details", new { id = item.Item5.ID }, new { @class = "btn btn-info" })
+                </div>
             </div>
-        </div>
-        <div>
-            @Html.ActionLink("Go to Details", "Details", new { id = item.Item5.ID }, new { @class = "btn btn-info" })
         </div>
         <hr />
     }
-
     <div>
         @Html.ActionLink("Back to List", "Index", null, new { @class = "btn btn-secondary" })
     </div>

@@ -9,7 +9,7 @@ using System.Web.Mvc;
 using ImageSimilarityMVC.Models;
 using System.Drawing;
 using System.IO;
-using System.Web.Helpers;
+using System.Diagnostics;
 
 namespace ImageSimilarityMVC.Controllers
 {
@@ -226,6 +226,9 @@ namespace ImageSimilarityMVC.Controllers
             ModifyFrequencyArr(ref frequencyArrB_input, binSize, out sumOfBPixels);
             // -------------------------------------------------------------------------------------------------
 
+            Stopwatch sw = new Stopwatch();
+            sw.Start();
+
             foreach (ImageModel candidateImageModel in candidateImageModels)
             {
                 switch (similarityFunction)
@@ -242,6 +245,10 @@ namespace ImageSimilarityMVC.Controllers
                         throw new Exception("Unknown similarity function.");
                 }
             }
+
+            sw.Stop();
+            double time = sw.Elapsed.TotalMilliseconds;
+            ViewBag.Time = time;
 
             // DESCENDING SORT
             similarityTupleList.Sort((x, y) => y.Item1.CompareTo(x.Item1));
